@@ -7,13 +7,12 @@ import numpy
 import scipy.special
 
 # 행렬을 시각화하기 위한 라이브러리
+import scipy.misc
 
 import matplotlib.pyplot
 
-import scipy.misc
-
-
 # 신경망 클래스의 정의
+
 
 class NeuralNetwork:
 
@@ -127,14 +126,14 @@ hidden_nodes = 200
 output_nodes = 10
 
 # 학습률
-learning_rate = 0.1
+learning_rate = 0.15
 # 인공 신경망 생성
 n = NeuralNetwork(input_nodes, hidden_nodes, output_nodes, learning_rate)
 
 # 학습데이타를 로딩한다.
 # mnist training data CSV 파일을 목록에로드합니다.
 
-training_data_file = open("mnist_dataset/mnist_train_100.csv", 'r')
+training_data_file = open("mnist_dataset/mnist_train_100.csv", "r")
 
 training_data_list = training_data_file.readlines()
 
@@ -144,7 +143,7 @@ training_data_file.close()
 
 # epochs는 교육 데이터 세트가 교육에 사용 된 횟수입니다.
 
-epochs = 5
+epochs = 100
 
 for e in range(epochs):
     # 교육 데이터 세트의 모든 레코드를 검토합니다.
@@ -163,13 +162,11 @@ for e in range(epochs):
 
 # 이젠 테스트 데이타를 로딩한다.
 
-test_data_file = open("mnist_dataset/mnist_test_10.csv", 'r')
+test_data_file = open("mnist_dataset/mnist_test_10.csv", "r")
 
 test_data_list = test_data_file.readlines()
 
 test_data_file.close()
-
-# 테스트 데이타 첫번째 값을 보면 7 이다는 것을 알 수 있다.
 
 all_values = test_data_list[0].split(',')
 
@@ -180,7 +177,7 @@ image_array = numpy.asfarray(all_values[1:]).reshape((28, 28))
 matplotlib.pyplot.imshow(image_array, cmap='Greys', interpolation='None')
 
 print("searching images...")
-img_array = scipy.misc.imread('./query-images/eight.png', flatten=True)
+img_array = scipy.misc.imread('./query-images/test_three.png', flatten=True)
 
 img_data = 255.0 - img_array.reshape(784)
 img_data = (img_data / 255.0 * 0.99) + 0.01
