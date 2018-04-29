@@ -11,6 +11,7 @@ import scipy.misc
 
 import matplotlib.pyplot
 
+
 # 신경망 클래스의 정의
 
 
@@ -130,8 +131,8 @@ learning_rate = 0.15
 # 인공 신경망 생성
 n = NeuralNetwork(input_nodes, hidden_nodes, output_nodes, learning_rate)
 
-# 학습데이타를 로딩한다.
-# mnist training data CSV 파일을 목록에로드합니다.
+# 학습데이터를 로딩
+# mnist training data CSV 파일을 목록에 로드
 
 training_data_file = open("mnist_dataset/mnist_train_100.csv", "r")
 
@@ -139,28 +140,26 @@ training_data_list = training_data_file.readlines()
 
 training_data_file.close()
 
-# 그리고 학습데이타로 학습을 시킨다.
+# 그리고 학습데이터로 학습
 
-# epochs는 교육 데이터 세트가 교육에 사용 된 횟수입니다.
+# epochs는 교육용 데이터 전체가 교육에 사용 된(될) 횟수
 
 epochs = 100
 
 for e in range(epochs):
-    # 교육 데이터 세트의 모든 레코드를 검토합니다.
     for record in training_data_list:
-        # split the record by the ',' commas
+        # record를 ,로 나눔
         all_values = record.split(',')
-        # 입력을 축척하고 시프트하십시오. 입력 스케일 및 이동
+        # 정규화 Normalize
         inputs = (numpy.asfarray(all_values[1:]) / 255.0 * 0.99) + 0.01
-        # 목표 출력 값 생성( 원하는 레이블 0.99를 제외한 모든 0.01)
         targets = numpy.zeros(output_nodes) + 0.01
-        # all_Value[0]는 이 레코드의 표적 라벨입니다.
+        # all_Value[0]는 recode의 label
         targets[int(all_values[0])] = 0.99
         n.train(inputs, targets)
         pass
     pass
 
-# 이젠 테스트 데이타를 로딩한다.
+# 테스트 데이터 로딩
 
 test_data_file = open("mnist_dataset/mnist_test_10.csv", "r")
 
@@ -168,26 +167,36 @@ test_data_list = test_data_file.readlines()
 
 test_data_file.close()
 
+# 결과를 별도로 출력하면 테스트 값이 나온다.
+
 all_values = test_data_list[0].split(',')
 
-print(all_values[0])
+# print(all_values[0])  - 생략
 
+# 이미지를 시각화, 다만 주피터 노트 사용시에
 image_array = numpy.asfarray(all_values[1:]).reshape((28, 28))
 
 matplotlib.pyplot.imshow(image_array, cmap='Greys', interpolation='None')
 
+# 원하는 이미지 파일을 등록 후 실행
 print("searching images...")
 img_array = scipy.misc.imread('./query-images/test_three.png', flatten=True)
 
 img_data = 255.0 - img_array.reshape(784)
+
+# 정규화
 img_data = (img_data / 255.0 * 0.99) + 0.01
+
+# 최댓값, 최솟값
 print("min = ", numpy.min(img_data))
 print("max = ", numpy.max(img_data))
 
+# 시각화
 matplotlib.pyplot.imshow(img_data.reshape(28, 28), cmap='Greys', interpolation='None')
 
 outputs = n.query(img_data)
 print(outputs)
 
+# 예상 값 출력
 label = numpy.argmax(outputs)
 print("network says ", label)
