@@ -1,11 +1,67 @@
 import tensorflow as tf
+import os
+import cv2
+import numpy as np
+from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import OneHotEncoder
 from tensorflow.examples.tutorials.mnist import input_data
+
+"""
+tensorflow : tensorflow 기능을 제공
+os : 디렉토리 경로 호출
+cv2 : 이미지 파일 로딩
+numpy as np : 데이터 처리, 행렬 연산 기능 제공
+sklearn.preprocessing : 문자인 폴더 리스트를 숫자형 array로 변환 및
+one-hot vector 변환에 사용
+tensorflow.examples.tutorials.mnist import input_data : 학습 데이터
+"""
 
 # 데이터 셋
 mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
 
+TEST_DIR = './MNIST_data/Test_Set/'
+test_folder_list = np.array(os.listdir(TEST_DIR))
+
 # TensorFlow InteractiveSession 시작
 sess = tf.InteractiveSession()
+
+# 변수
+test_input = []
+test_label = []
+
+# Label Encoder / 문자열로 구성된 Test_Set을 숫자형 리스트로 변환
+label_encoder = LabelEncoder()
+integer_encoded = label_encoder.fit_transform(test_folder_list)
+
+# OneHot Encoder /  integer_encoded의 shape을 (10,)에서 (10,1)로 변환 후 One Hot Vector 형태로 변환
+onehot_encoder = OneHotEncoder(sparse=False)
+integer_encoded = integer_encoded.reshape(len(integer_encoded), 1)
+onehot_encoded = onehot_encoder.fit_transform(integer_encoded)
+
+# for문 경로 연산 및 파일명 추출
+for index in range(len(test_folder_list)):
+    path = os.path.join(TEST_DIR, test_folder_list[index])
+    path = path + '/'
+    img_list = os.listdir(path)
+
+    # 이미지 데이터, label을 np.array 형식으로 각각 리스트에 입력
+    for img in img_list:
+        img_path = os.path.join(path, img)
+        img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
+        test_input.append([np.array(img)])
+        test_label.append([np.array(onehot_encoded[index])])
+
+# 크기에 적절하게 형태 변환 및 입력
+test_input = np.reshape(test_input, (-1, 784))
+test_label = np.reshape(test_label, (-1, 10))
+
+# 각 리스트의 데이터 타입을 float32로 변환
+test_input = np.array(test_input).astype(np.float32)
+test_label = np.array(test_label).astype(np.float32)
+
+# 각 리스트를 파일로 저장
+np.save("test_input.npy", test_input)
+np.save("test_label.npy", test_label)
 
 # 회귀
 x = tf.placeholder(tf.float32, shape=[None, 784])
@@ -39,7 +95,7 @@ print(accuracy.eval(feed_dict={x: mnist.test.images, y_: mnist.test.labels}))
 """
 
 
-# 가중치 초기화 ReLU 함수(활성함수)
+# 가중치 초기화 leaky_ReLU함수 (활성함수)
 def weight_variable(shape):
     initial = tf.truncated_normal(shape, stddev=0.1)
     return tf.Variable(initial)
@@ -60,7 +116,7 @@ def max_pool_2x2(x):
                           strides=[1, 2, 2, 1], padding='SAME')
 
 
-# 첫 번째 합성곱
+# 첫 번째 합성곱, leaky_ReLU 함수 (활성함수)
 W_conv1 = weight_variable([5, 5, 1, 32])
 b_conv1 = bias_variable([32])
 
@@ -103,7 +159,7 @@ accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 sess.run(tf.global_variables_initializer())
 
 # 훈련 및 평가, 훈련을 많이 할 수록 정확도와 시간이 비례함
-for i in range(20000):
+for i in range(1000):
     batch = mnist.train.next_batch(50)
     if i % 100 == 0:
         train_accuracy = accuracy.eval(feed_dict={
@@ -111,5 +167,6 @@ for i in range(20000):
         print("step %d, training accuracy %g" % (i, train_accuracy))
     train_step.run(feed_dict={x: batch[0], y_: batch[1], keep_prob: 0.5})
 
+# 앞서 준비한 테스트 이미지를 비교하여 정확도를 출력
 print("test accuracy %g" % accuracy.eval(feed_dict={
-    x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0}))
+    x: test_input, y_: test_label, keep_prob: 1.0}))
